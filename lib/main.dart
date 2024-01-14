@@ -47,9 +47,7 @@ class MyAppState extends ChangeNotifier {
   }
 
   void removeFavorite(WordPair value) {
-    if (favorites.contains(value)) {
-      favorites.remove(value);
-    }
+    favorites.remove(value);
     notifyListeners();
   }
 }
@@ -126,45 +124,71 @@ class FavoritesPage extends StatelessWidget {
       );
     }
 
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text('You have ${favorites.length} favorites:'),
-        ),
-        ...favorites
-            .map((favorite) => ListTile(
-                  iconColor: Theme.of(context).colorScheme.primary,
-                  leading: Icon(Icons.favorite),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete,
-                        color: Theme.of(context).colorScheme.error),
-                    onPressed: () {
-                      appState.removeFavorite(favorite);
-                    },
-                  ),
-                  title: Text(favorite.asPascalCase),
-                  onTap: () {
-                    Clipboard.setData(
-                        ClipboardData(text: favorite.asPascalCase));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
-                        content: Text(
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
-                          "Copied to clipboard",
+    const Gradient maskingGradient = LinearGradient(
+      // This gradient goes from fully transparent to fully opaque black...
+      colors: [Colors.transparent, Colors.black],
+      // ... from the top (transparent) to half (0.5) of the way to the bottom.
+      stops: [0.0, 0.5],
+      begin: Alignment.bottomCenter,
+      end: Alignment.topCenter,
+    );
+
+    return ShaderMask(
+      shaderCallback: (bounds) => maskingGradient.createShader(bounds),
+      // This blend mode takes the opacity of the shader (i.e. our gradient)
+      // and applies it to the destination (i.e. our animated list).
+      blendMode: BlendMode.dstIn,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text('You have ${favorites.length} favorites:'),
+          ),
+          Expanded(
+            child: GridView(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 500,
+                crossAxisSpacing: 20,
+                mainAxisExtent: 48
+              ),
+              children: favorites
+                  .map((favorite) => ListTile(
+                        iconColor: Theme.of(context).colorScheme.primary,
+                        leading: Icon(Icons.favorite),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete,
+                              color: Theme.of(context).colorScheme.error),
+                          onPressed: () {
+                            appState.removeFavorite(favorite);
+                          },
                         ),
-                      ),
-                    );
-                  },
-                ))
-            .toList(),
-      ],
+                        title: Text(favorite.asPascalCase),
+                        onTap: () {
+                          Clipboard.setData(
+                              ClipboardData(text: favorite.asPascalCase));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
+                              content: Text(
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
+                                ),
+                                "Copied to clipboard",
+                              ),
+                            ),
+                          );
+                        },
+                      ))
+                  .toList(),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
